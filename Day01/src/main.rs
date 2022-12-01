@@ -3,17 +3,17 @@ use std::fs;
 fn main() {
     let contents = fs::read_to_string("input.txt").expect("Error reading file");
     let split_contents = contents.lines();
-    let mut max: u32 = 0;
-    let mut current: u32 = 0;
+    let mut totals: Vec<u32> = vec![0];
     for line in split_contents {
         if line == "" {
-            if current > max {
-                max = current;
-            }
-            current = 0;
+            totals.push(0);
         } else {
-            current += line.parse::<u32>().unwrap();
+            let length = totals.len() - 1;
+            totals[length] += line.parse::<u32>().unwrap();
         }
     }
-    println!("{max}");
+    totals.sort();
+    let tail_total = totals[totals.len() - 1] + totals[totals.len() - 2] + totals[totals.len() - 3];
+
+    println!("{tail_total}")
 }
