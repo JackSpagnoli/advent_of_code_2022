@@ -5,6 +5,12 @@ fn main() {
                                         [0,3,6],
                                         [6,0,3]];
     
+                                        //opp_move r,p,s
+                                        //desired_outcome l,d,w
+    let player_move_encoding:[[u32;3];3] = [[2,0,1],
+                                            [0,1,2],
+                                            [1,2,0]];
+
     let contents = fs::read_to_string("input.txt").expect("Error reading file");
     let split_contents = contents.lines();
 
@@ -12,11 +18,9 @@ fn main() {
         let mut chars = x.chars();
         let opponent_move = chars.next().unwrap() as u32 - 65;
         chars.next();
-        let player_move = chars.next().unwrap() as u32 - 88;
+        let desired_outcome = chars.next().unwrap() as u32 - 88;
 
-        println!("{opponent_move} {player_move}");
-
-        return n + outcome_encoding[opponent_move as usize][player_move as usize] + player_move + 1;
+        return n + (desired_outcome * 3) + player_move_encoding[opponent_move as usize][desired_outcome as usize] + 1;
     });
     println!("Final score: {score}");
 }
