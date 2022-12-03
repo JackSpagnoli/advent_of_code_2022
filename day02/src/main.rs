@@ -1,9 +1,9 @@
 use std::fs;
 
 fn main() {
-    let outcome_encoding:[[u32;3];3] = [[3,6,0],
-                                        [0,3,6],
-                                        [6,0,3]];
+    // let outcome_encoding:[[u32;3];3] = [[3,6,0],
+    //                                     [0,3,6],
+    //                                     [6,0,3]];
     
                                         //opp_move r,p,s
                                         //desired_outcome l,d,w
