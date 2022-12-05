@@ -2,11 +2,13 @@ use std::fs;
 use regex::Regex;
 
 fn main() {
-    assert!(process_moves("test_initial_setup.txt", "test_moves.txt") == "CMZ");
-    println!("{}", process_moves("initial_setup.txt", "moves.txt"))
+    assert!(process_moves("test_initial_setup.txt", "test_moves.txt", false) == "CMZ");
+    println!("{}", process_moves("initial_setup.txt", "moves.txt", false));
+    assert!(process_moves("test_initial_setup.txt", "test_moves.txt", true) == "MCD");
+    println!("{}", process_moves("initial_setup.txt", "moves.txt", true));
 }
 
-fn process_moves(initial: &str, moves: &str) -> String {
+fn process_moves(initial: &str, moves: &str, multiple_pickup: bool) -> String {
     let initial_setup_contents = fs::read_to_string(initial).expect("Error reading file");
     let split_initial_setup_contents = initial_setup_contents.lines();
 
@@ -34,9 +36,19 @@ fn process_moves(initial: &str, moves: &str) -> String {
         .collect();
 
     for instruction in moves {
-        for _ in 0..instruction[0] {
-            let moved_crate = stacks[instruction[1]-1].pop().unwrap();
-            stacks[instruction[2]-1].push(moved_crate);
+        if !multiple_pickup {
+            for _ in 0..instruction[0] {
+                let moved_crate = stacks[instruction[1] - 1].pop().unwrap();
+                stacks[instruction[2] - 1].push(moved_crate);
+            }
+        } else {
+            let mut temp_stack: Vec<char> = vec!();
+            for _ in 0..instruction[0] {
+                temp_stack.push(stacks[instruction[1] - 1].pop().unwrap());
+            }
+            for _ in 0..instruction[0] {
+                stacks[instruction[2] - 1].push(temp_stack.pop().unwrap());
+            }
         }
     }
 
