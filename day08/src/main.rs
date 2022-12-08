@@ -88,5 +88,57 @@ fn is_visible(trees: &Vec<Vec<u32>>, x: usize, y: usize) -> bool {
 }
 
 fn max_senic_score(trees: &Vec<Vec<u32>>) -> u32 {
-    return 0;
+    let mut max_score: u32 = 0;
+    for y in 0..trees.len() {
+        for x in 0..trees[y].len() {
+            let score = scenic_score(&trees, y, x);
+            if score > max_score {
+                max_score = score;
+            }
+        }
+    }
+    return max_score;
+}
+
+fn scenic_score(trees: &Vec<Vec<u32>>, y: usize, x: usize) -> u32 {
+    let h = trees[y][x];
+    let mut score: u32 = 1;
+
+    let mut k: u32 = 0;
+    for i in x + 1..trees[y].len() {
+        k += 1;
+        if trees[y][i] >= h {
+            break;
+        }
+    }
+    score *= k;
+    k = 0;
+
+    for i in (0..x).rev() {
+        k += 1;
+        if trees[y][i] >= h {
+            break;
+        }
+    }
+    score *= k;
+    k = 0;
+
+    for j in y + 1..trees.len() {
+        k += 1;
+        if trees[j][x] >= h {
+            break;
+        }
+    }
+    score *= k;
+    k = 0;
+
+    for j in (0..y).rev() {
+        k += 1;
+        if trees[j][x] >= h {
+            break;
+        }
+    }
+    score *= k;
+
+    return score;
 }
