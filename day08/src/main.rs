@@ -1,15 +1,20 @@
 use std::fs;
 
 fn main() {
-    assert_eq!(count_visible_trees("test_input.txt"), 21);
-    println!("{}", count_visible_trees("input.txt"));
+    let mut trees: Vec<Vec<u32>> = vec!();
+    read_trees(&mut trees, "test_input.txt");
+    assert_eq!(count_visible_trees(&trees), 21);
+    assert_eq!(max_senic_score(&trees), 8);
+
+    trees = vec!();
+    read_trees(&mut trees, "input.txt");
+    println!("{}", count_visible_trees(&trees));
+    println!("{}", max_senic_score(&trees));
 }
 
-fn count_visible_trees(file: &str) -> u32 {
+fn read_trees(trees: &mut Vec<Vec<u32>>, file: &str) {
     let input_contents = fs::read_to_string(file).expect("Error reading file");
     let lines = input_contents.lines();
-
-    let mut trees: Vec<Vec<u32>> = vec![];
 
     for line in lines {
         let mut line_mut = vec!();
@@ -18,7 +23,9 @@ fn count_visible_trees(file: &str) -> u32 {
         }
         trees.push(line_mut);
     }
+}
 
+fn count_visible_trees(trees: &Vec<Vec<u32>>) -> u32 {
     let mut visible_trees: u32 = 0;
     for j in 0..trees.len() {
         for i in 0..trees[0].len() {
@@ -27,7 +34,6 @@ fn count_visible_trees(file: &str) -> u32 {
             }
         }
     }
-
     return visible_trees;
 }
 
@@ -79,4 +85,8 @@ fn is_visible(trees: &Vec<Vec<u32>>, x: usize, y: usize) -> bool {
     }
 
     return false;
+}
+
+fn max_senic_score(trees: &Vec<Vec<u32>>) -> u32 {
+    return 0;
 }
