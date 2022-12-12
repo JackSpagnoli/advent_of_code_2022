@@ -4,6 +4,9 @@ use regex::Regex;
 fn main() {
     assert_eq!(product_top_worries("test_input.txt", 20, true), 10605);
     println!("{}", product_top_worries("input.txt", 20, true));
+
+    assert_eq!(product_top_worries("test_input.txt", 10000, false), 2713310158);
+    println!("{}", product_top_worries("input.txt", 10000, false));
 }
 
 fn parse_rules(
@@ -77,16 +80,16 @@ fn generate_closure<'a>(
     }
 }
 
-fn product_top_worries(file: &str, rounds: usize, divide_by_three: bool) -> usize {
+fn product_top_worries(file: &str, rounds: usize, divide_by_three: bool) -> u128 {
     let mut rules = parse_rules(file);
 
     for _ in 0..rounds {
         make_moves(&mut rules, divide_by_three);
     }
 
-    let mut inspections: Vec<usize> = rules
+    let mut inspections: Vec<u128> = rules
         .iter()
-        .map(|monkey| monkey.5)
+        .map(|monkey| monkey.5 as u128)
         .collect();
 
     inspections.sort_by(|a, b| b.cmp(a));
@@ -98,6 +101,7 @@ fn make_moves(
     monkeys: &mut Vec<(Vec<isize>, Box<dyn Fn(isize) -> isize>, usize, usize, usize, usize)>,
     divide_by_three: bool
 ) {
+    let divisor = find_divisor(&monkeys);
     for i in 0..monkeys.len() {
         monkeys[i].5 += monkeys[i].0.len();
         for item in 0..monkeys[i].0.len() {
@@ -106,6 +110,8 @@ fn make_moves(
             worry = (monkeys[i].1)(worry);
             if divide_by_three {
                 worry /= 3;
+            } else {
+                worry %= divisor;
             }
             let next_monkey;
             if worry % (monkeys[i].2 as isize) == 0 {
@@ -117,4 +123,14 @@ fn make_moves(
         }
         monkeys[i].0 = vec!();
     }
+}
+
+fn find_divisor(
+    monkeys: &Vec<(Vec<isize>, Box<dyn Fn(isize) -> isize>, usize, usize, usize, usize)>
+) -> isize {
+    let mut prod: isize = 1;
+    for monkey in monkeys {
+        prod *= monkey.2 as isize;
+    }
+    return prod;
 }
