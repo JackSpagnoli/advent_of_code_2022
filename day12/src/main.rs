@@ -4,11 +4,15 @@ use pathfinding::prelude::dijkstra;
 fn main() {
     assert_eq!(find_shortest_path("test_input.txt"), 31);
     println!("{}", find_shortest_path("input.txt"));
+
+    assert_eq!(find_shortest_path_to_low_ground("test_input.txt"), 29);
+    println!("{}", find_shortest_path_to_low_ground("input.txt"));
 }
 
 fn successors(
     (y, x): (usize, usize),
-    height_map: &Vec<Vec<isize>>
+    height_map: &Vec<Vec<isize>>,
+    up_limit: bool
 ) -> Vec<((usize, usize), usize)> {
     if y >= height_map.len() || x >= height_map[0].len() {
         return vec!();
@@ -16,36 +20,32 @@ fn successors(
     let mut orthogonal_paths: Vec<(usize, usize)> = vec!();
     if y <= height_map.len() - 2 {
         if
-            height_map[y + 1][x] - height_map[y][x] <= 1 
-            // &&
-            // height_map[y + 1][x] - height_map[y][x] >= -1
+            (height_map[y + 1][x] - height_map[y][x] <= 1 && up_limit) ||
+            (height_map[y + 1][x] - height_map[y][x] >= -1 && !up_limit)
         {
             orthogonal_paths.push((y + 1, x));
         }
     }
     if y >= 1 {
         if
-            height_map[y - 1][x] - height_map[y][x] <= 1 
-            // &&
-            // height_map[y - 1][x] - height_map[y][x] >= -1
+            (height_map[y - 1][x] - height_map[y][x] <= 1 && up_limit) ||
+            (height_map[y - 1][x] - height_map[y][x] >= -1 && !up_limit)
         {
             orthogonal_paths.push((y - 1, x));
         }
     }
     if x <= height_map[0].len() - 2 {
         if
-            height_map[y][x + 1] - height_map[y][x] <= 1 
-            // &&
-            // height_map[y][x + 1] - height_map[y][x] >= -1
+            (height_map[y][x + 1] - height_map[y][x] <= 1 && up_limit) ||
+            (height_map[y][x + 1] - height_map[y][x] >= -1 && !up_limit)
         {
             orthogonal_paths.push((y, x + 1));
         }
     }
     if x >= 1 {
         if
-            height_map[y][x - 1] - height_map[y][x] <= 1 
-            // &&
-            // height_map[y][x - 1] - height_map[y][x] >= -1
+            (height_map[y][x - 1] - height_map[y][x] <= 1 && up_limit) ||
+            (height_map[y][x - 1] - height_map[y][x] >= -1 && !up_limit)
         {
             orthogonal_paths.push((y, x - 1));
         }
@@ -61,8 +61,18 @@ fn find_shortest_path(file: &str) -> usize {
     let (height_map, destination_pos, start_point) = generate_height_map(file);
     let result = dijkstra(
         &start_point,
-        |&(y, x)| successors((y, x), &height_map),
+        |&(y, x)| successors((y, x), &height_map, true),
         |p| *p == destination_pos
+    ).expect("No path");
+    return result.1;
+}
+
+fn find_shortest_path_to_low_ground(file: &str) -> usize {
+    let (height_map, start_point, _) = generate_height_map(file);
+    let result = dijkstra(
+        &start_point,
+        |&(y, x)| successors((y, x), &height_map, false),
+        |&(y, x)| height_map[y][x] == 0
     ).expect("No path");
     return result.1;
 }
