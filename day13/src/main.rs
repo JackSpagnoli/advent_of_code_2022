@@ -1,0 +1,87 @@
+use json::{ parse, JsonValue };
+use std::fs;
+
+fn main() {
+    assert_eq!(check_file_sorting("test_input.txt"), 13);
+    println!("{}", check_file_sorting("input.txt"));
+}
+
+fn check_file_sorting(file: &str) -> usize {
+    let contents = fs::read_to_string(file).expect("Error reading file");
+    let mut lines = contents.lines();
+
+    let mut sorted_index_sum: usize = 0;
+
+    let mut pair: usize = 1;
+    let mut line1 = lines.next().unwrap();
+    let mut line2 = lines.next().unwrap();
+    lines.next();
+
+    let mut break_after_next_pass = false;
+    loop {
+        // println!("\nNext Line");
+        // println!("{line1}");
+        // println!("{line2}");
+        let parsed_line_1 = parse(line1).unwrap();
+        let parsed_line_2 = parse(line2).unwrap();
+
+        if sorted_pair(&parsed_line_1, &parsed_line_2) == 1 {
+            // println!("Sorted");
+            sorted_index_sum += pair;
+        } else {
+            // println!("Not sorted");
+        }
+        if break_after_next_pass {
+            break;
+        }
+
+        line1 = lines.next().unwrap();
+        line2 = lines.next().unwrap();
+        pair += 1;
+        if lines.next() == None {
+            break_after_next_pass = true;
+        }
+    }
+    return sorted_index_sum;
+}
+
+fn sorted_pair(element_1: &JsonValue, element_2: &JsonValue) -> isize {
+    // println!("Comparison:\n{element_1}\n{element_2}");
+    if element_1.is_array() && element_2.is_array() {
+        let array_1: Vec<&JsonValue> = element_1.members().collect();
+        let array_2: Vec<&JsonValue> = element_2.members().collect();
+
+        for i in 0..array_1.len() {
+            if i >= array_2.len() {
+                return -1;
+            }
+            let sorted_pair = sorted_pair(array_1[i], array_2[i]);
+            if sorted_pair == -1 || sorted_pair == 1 {
+                return sorted_pair;
+            }
+        }
+        return 1;
+    }
+    if element_1.is_number() && element_2.is_number() {
+        if element_1.as_usize().unwrap() < element_2.as_usize().unwrap() {
+            return 1;
+        } else if element_1.as_usize().unwrap() == element_2.as_usize().unwrap() {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+
+    if !element_1.is_array() {
+        let mut array_1 = JsonValue::new_array();
+        array_1.push(element_1.clone()).expect("Shitters");
+        return sorted_pair(&array_1, element_2);
+    }
+    if !element_2.is_array() {
+        let mut array_2 = JsonValue::new_array();
+        array_2.push(element_2.clone()).expect("Shitters");
+        return sorted_pair(element_1, &array_2);
+    }
+
+    return -1;
+}
