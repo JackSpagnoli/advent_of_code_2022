@@ -23,17 +23,11 @@ fn check_file_sorting(file: &str) -> usize {
 
     let mut break_after_next_pass = false;
     loop {
-        // println!("\nNext Line");
-        // println!("{line1}");
-        // println!("{line2}");
         let parsed_line_1 = parse(line1).unwrap();
         let parsed_line_2 = parse(line2).unwrap();
 
         if sorted_pair(&parsed_line_1, &parsed_line_2) == 1 {
-            // println!("Sorted");
             sorted_index_sum += pair;
-        } else {
-            // println!("Not sorted");
         }
         if break_after_next_pass {
             break;
@@ -50,11 +44,9 @@ fn check_file_sorting(file: &str) -> usize {
 }
 
 fn sorted_pair(element_1: &JsonValue, element_2: &JsonValue) -> isize {
-    // println!("Comparison:\n{element_1}\n{element_2}");
     if element_1.is_array() && element_2.is_array() {
         let array_1: Vec<&JsonValue> = element_1.members().collect();
         let array_2: Vec<&JsonValue> = element_2.members().collect();
-
         for i in 0..array_1.len() {
             if i >= array_2.len() {
                 return -1;
@@ -75,7 +67,6 @@ fn sorted_pair(element_1: &JsonValue, element_2: &JsonValue) -> isize {
             return -1;
         }
     }
-
     if !element_1.is_array() {
         let mut array_1 = JsonValue::new_array();
         array_1.push(element_1.clone()).expect("Shitters");
@@ -86,7 +77,6 @@ fn sorted_pair(element_1: &JsonValue, element_2: &JsonValue) -> isize {
         array_2.push(element_2.clone()).expect("Shitters");
         return sorted_pair(element_1, &array_2);
     }
-
     return -1;
 }
 
@@ -134,12 +124,11 @@ fn decoder_key(file: &str) -> usize {
 
     let mut decoder_key: usize = 1;
     for i in 0..parsed_lines.len() {
-        // println!("{}", parsed_lines[i].dump());
         if parsed_lines[i].dump() == "[[2]]".to_owned() {
-            decoder_key *= i+1;
+            decoder_key *= i + 1;
         }
         if parsed_lines[i].dump() == "[[6]]".to_owned() {
-            decoder_key *= i+1;
+            decoder_key *= i + 1;
             return decoder_key;
         }
     }
