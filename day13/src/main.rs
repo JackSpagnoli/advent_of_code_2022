@@ -1,9 +1,13 @@
 use json::{ parse, JsonValue };
 use std::fs;
+use std::cmp::Ordering::{ Greater, Less };
 
 fn main() {
     assert_eq!(check_file_sorting("test_input.txt"), 13);
     println!("{}", check_file_sorting("input.txt"));
+
+    assert_eq!(decoder_key("test_input.txt"), 140);
+    println!("{}", decoder_key("input.txt"));
 }
 
 fn check_file_sorting(file: &str) -> usize {
@@ -84,4 +88,61 @@ fn sorted_pair(element_1: &JsonValue, element_2: &JsonValue) -> isize {
     }
 
     return -1;
+}
+
+fn decoder_key(file: &str) -> usize {
+    let contents = fs::read_to_string(file).expect("Error reading file");
+    let mut lines = contents.lines();
+
+    let mut parsed_lines: Vec<JsonValue> = vec!();
+
+    let mut line1 = lines.next().unwrap();
+    let mut line2 = lines.next().unwrap();
+    lines.next();
+
+    let mut break_after_next_pass = false;
+    loop {
+        parsed_lines.push(parse(line1).unwrap());
+        parsed_lines.push(parse(line2).unwrap());
+
+        if break_after_next_pass {
+            break;
+        }
+
+        line1 = lines.next().unwrap();
+        line2 = lines.next().unwrap();
+        if lines.next() == None {
+            break_after_next_pass = true;
+        }
+    }
+
+    parsed_lines.push(parse("[[2]]").unwrap());
+    parsed_lines.push(parse("[[6]]").unwrap());
+
+    parsed_lines.sort_by(|a, b| {
+        let s = sorted_pair(a, b);
+        match s {
+            1 => {
+                return Less;
+            }
+            -1 => {
+                return Greater;
+            }
+            _ => panic!("Yikes"),
+        }
+    });
+
+    let mut decoder_key: usize = 1;
+    for i in 0..parsed_lines.len() {
+        // println!("{}", parsed_lines[i].dump());
+        if parsed_lines[i].dump() == "[[2]]".to_owned() {
+            decoder_key *= i+1;
+        }
+        if parsed_lines[i].dump() == "[[6]]".to_owned() {
+            decoder_key *= i+1;
+            return decoder_key;
+        }
+    }
+
+    return decoder_key;
 }
