@@ -1,19 +1,18 @@
 use std::fs;
 
 fn main() {
-    assert_eq!(calculate_max_sand_volume("test_input.txt"), 24);
-    println!("{}", calculate_max_sand_volume("input.txt"));
+    assert_eq!(calculate_max_sand_volume("test_input.txt", false), 24);
+    println!("{}", calculate_max_sand_volume("input.txt", false));
+
+    assert_eq!(calculate_max_sand_volume("test_input.txt", true), 93);
+    println!("{}", calculate_max_sand_volume("input.txt", true));
 }
 
-fn calculate_max_sand_volume(file: &str) -> usize {
-    let (mut map, source) = generate_rock_map(file);
+fn calculate_max_sand_volume(file: &str, solid_floor: bool) -> usize {
+    let (mut map, source) = generate_rock_map(file, solid_floor);
 
     let mut particles: usize = 0;
     while simulate_sand_particle(&mut map, source) {
-        // for line in &map {
-        //     println!("{line:?}");
-        // }
-        // println!();
         particles += 1;
     }
 
@@ -22,7 +21,6 @@ fn calculate_max_sand_volume(file: &str) -> usize {
 
 fn simulate_sand_particle(map: &mut Vec<Vec<usize>>, source: (usize, usize)) -> bool {
     let mut pos = source;
-    // println!("New particle at ({},{})", pos.0, pos.1);
     loop {
         if pos.0 + 1 >= map.len() || map[pos.0][pos.1] == 2 {
             return false;
@@ -39,23 +37,20 @@ fn simulate_sand_particle(map: &mut Vec<Vec<usize>>, source: (usize, usize)) -> 
             map[pos.0][pos.1] = 2;
             return true;
         }
-        // println!("Particle now at ({},{})", pos.0, pos.1);
     }
 }
 
-fn generate_rock_map(file: &str) -> (Vec<Vec<usize>>, (usize, usize)) {
+fn generate_rock_map(file: &str, solid_floor: bool) -> (Vec<Vec<usize>>, (usize, usize)) {
     let contents = fs::read_to_string(file).expect("Error reading file");
     let lines = contents.lines();
 
     let mut all_rocks: Vec<(usize, usize)> = vec!();
 
     let mut minx: usize = 2_000_000;
-    // let mut miny: usize = 2_000_000;
     let mut maxx: usize = 0;
     let mut maxy: usize = 0;
     for line in lines {
         let rocks: Vec<(usize, usize)> = parse_path_line(line);
-        // println!("{rocks:?}");
         for rock in rocks {
             all_rocks.push(rock);
             if rock.0 > maxy {
@@ -64,23 +59,24 @@ fn generate_rock_map(file: &str) -> (Vec<Vec<usize>>, (usize, usize)) {
             if rock.1 > maxx {
                 maxx = rock.1;
             }
-            // if rock.0 < miny {
-            //     miny = rock.0;
-            // }
             if rock.1 < minx {
                 minx = rock.1;
             }
         }
     }
 
-    let width = maxx - minx + 1;
-    // let height = maxy - miny + 1;
-    let height = maxy;
-
-    // println!("{width}x{height}");
+    let width: usize;
+    let height: usize;
+    if !solid_floor {
+        width = maxx - minx + 1;
+        height = maxy;
+    } else {
+        height = maxy;
+        width = maxx - minx + 1 + 2 * height;
+    }
 
     let mut map: Vec<Vec<usize>> = vec!();
-    for _ in 0..height + 2 {
+    for _ in 0..height + 3 {
         map.push(
             std::iter
                 ::repeat(0)
@@ -90,11 +86,24 @@ fn generate_rock_map(file: &str) -> (Vec<Vec<usize>>, (usize, usize)) {
     }
 
     for rock in all_rocks {
-        // map[rock.0 - miny + 1][rock.1 - minx + 1] = 1;
-        map[rock.0][rock.1 - minx + 1] = 1;
+        if !solid_floor {
+            map[rock.0][rock.1 - minx + 1] = 1;
+        } else {
+            map[rock.0][rock.1 - minx + 1 + height] = 1;
+        }
     }
 
-    return (map, (0, 500 - minx + 1));
+    if solid_floor {
+        for i in 0..width {
+            map[height + 2][i] = 1;
+        }
+    }
+
+    if !solid_floor {
+        return (map, (0, 500 - minx + 1));
+    } else {
+        return (map, (0, 500 - minx + 1 + height));
+    }
 }
 
 fn parse_path_line(line: &str) -> Vec<(usize, usize)> {
@@ -103,13 +112,11 @@ fn parse_path_line(line: &str) -> Vec<(usize, usize)> {
     let mut rocks: Vec<(usize, usize)> = vec!();
 
     for i in 0..corners.len() - 1 {
-        // println!("Considering corners {:?} and {:?}", corners[i], corners[i + 1]);
         let (dy, dx) = (
             (corners[i + 1].0 as isize) - (corners[i].0 as isize),
             (corners[i + 1].1 as isize) - (corners[i].1 as isize),
         );
-        // println!("dy,dx = {dy},{dx}");
-        let mut new_rocks: Vec<(usize, usize)>;
+        let new_rocks: Vec<(usize, usize)>;
         if dx != 0 {
             if dx < 0 {
                 let iter = corners[i + 1].1 + 1..corners[i].1 + 1;
@@ -133,7 +140,6 @@ fn parse_path_line(line: &str) -> Vec<(usize, usize)> {
                 new_rocks = iter.map(|y| (y, corners[i + 1].1)).collect();
             }
         }
-        // println!("New rocks: {new_rocks:?}");
         for rock in new_rocks {
             rocks.push(rock);
         }
